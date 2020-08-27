@@ -70,18 +70,73 @@ function newGame(game) {
     abbr.textContent = shorthand[game[`${team}Team`]];
   });
 
-  document.body.append(clone);
+  document.querySelector('main').append(clone);
   return gameElement;
 }
+
+let voices = [];
+function updateVoices() { //sometimes chrome needs you to do this twice so that's why it's a function
+  voices = speechSynthesis.getVoices().filter((v) => v.lang.startsWith('en'));
+  voices.forEach((v) => {
+    const opt = document.createElement('option');
+    opt.appendChild( document.createTextNode(v.name) );
+    opt.value = v.name; 
+    document.querySelector('.voice-selector').appendChild(opt); 
+  });
+}
+updateVoices();
+
+let latestUpdate = '';
+let nicknames = [];
 
 function setupSource() {
   // TODO set up my own dang CORS proxy
   const source = new EventSource('https://cors-anywhere.herokuapp.com/https://www.blaseball.com/events/streamGameData');
-
   source.addEventListener('message', (e) => {
     const data = JSON.parse(e.data).value;
     const schedule = [...data.schedule].sort(compareGames);
     const gameIds = schedule.map((g) => g.id);
+
+    if (voices.length === 0) {
+      updateVoices();
+    }
+
+    if (nicknames.length === 0) {
+      schedule.forEach((g) => {
+        nicknames.push(g.awayTeamNickname);
+        nicknames.push(g.homeTeamNickname);
+      });
+      nicknames = nicknames.sort();
+      nicknames.forEach((n) => {
+        const opt = document.createElement('option');
+        opt.appendChild( document.createTextNode(n) );
+        opt.value = n; 
+        document.querySelector('.team-selector').appendChild(opt); 
+      });
+    }
+
+    if (document.querySelector('.loading')) {
+      document.querySelector('.loading').remove();
+    }
+    if (document.querySelector('.show-once-loaded')) {
+      document.querySelector('.show-once-loaded').classList.remove('show-once-loaded');
+    }
+
+
+    const trackedName = document.querySelector('.team-selector').value;
+    const preferredVoice = voices.find((v) => document.querySelector('.voice-selector').value === v.name);
+    if (trackedName){
+      const voiceGame = schedule.find((g) => g.awayTeamNickname === trackedName || g.homeTeamNickname === trackedName);
+      const { lastUpdate } = voiceGame;
+      if (lastUpdate && latestUpdate !== lastUpdate) {
+        let utterance = new SpeechSynthesisUtterance(voiceGame.lastUpdate)
+        if (preferredVoice) {
+          utterance.voice = preferredVoice;
+        }
+        speechSynthesis.speak(utterance);
+        latestUpdate = voiceGame.lastUpdate;
+      }
+    }
 
     document.body.querySelectorAll('.game').forEach((gameElement) => {
       if (gameElement.dataset.id && !gameIds.includes(gameElement.dataset.id)) {
