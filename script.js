@@ -90,11 +90,10 @@ let latestUpdate = '';
 let nicknames = [];
 
 function setupSource() {
-  const source = new EventSource('https://cors-proxy.blaseball-reference.com/events/streamGameData');
+  const source = new EventSource('https://cors-proxy.blaseball-reference.com/events/streamData');
 
   source.addEventListener('message', (e) => {
-    const data = JSON.parse(e.data).value;
-    const schedule = [...data.schedule].sort(compareGames);
+    const schedule = JSON.parse(e.data).value.games.schedule.sort(compareGames);
     const gameIds = schedule.map((g) => g.id);
 
     if (voices.length === 0) {
