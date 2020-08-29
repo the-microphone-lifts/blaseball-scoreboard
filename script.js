@@ -128,7 +128,11 @@ function setupSource() {
       const voiceGame = schedule.find((g) => g.awayTeamNickname === trackedName || g.homeTeamNickname === trackedName);
       const { lastUpdate } = voiceGame;
       if (lastUpdate && latestUpdate !== lastUpdate) {
-        let utterance = new SpeechSynthesisUtterance(voiceGame.lastUpdate)
+        const phoneticCountMunge = /(?<=\d)-(?=\d$)/;
+        const phoneticZero = /0/g;
+        const phoneticUpdate = voiceGame.lastUpdate.replace(phoneticCountMunge, ' and ').replace(phoneticZero, 'O')
+        console.debug(phoneticUpdate);
+        let utterance = new SpeechSynthesisUtterance(phoneticUpdate)
         if (preferredVoice) {
           utterance.voice = preferredVoice;
         }
