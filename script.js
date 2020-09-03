@@ -138,6 +138,8 @@ function setupSource() {
           } else {
             if (voiceGame.homeScore == 0 && voiceGame.awayScore == 0) {
               halfInningHeader = 'No score at the '
+            } else if (voiceGame.homeScore == voiceGame.awayScore) {
+              halfInningHeader = 'Score tied ' + voiceGame.homeScore + ' all at the '
             } else if (voiceGame.homeScore > voiceGame.awayScore) {
               halfInningHeader = homeScoreString + ', ' + awayScoreString + ' at the '
             } else {
