@@ -147,7 +147,14 @@ function setupSource() {
         }
         const phoneticCountMunge = /(?<=\d)-(?=\d$)/;
         const phoneticZero = /(?<!\d)0/g;
-        const phoneticUpdate = halfInningHeader + voiceGame.lastUpdate.replace(phoneticInning, 'the ' + ordinal(voiceGame.inning + 1)).replace(phoneticCountMunge, ' and ').replace(phoneticZero, 'O');
+        let phoneticUpdate = halfInningHeader + voiceGame.lastUpdate.replace(phoneticInning, 'the ' + ordinal(voiceGame.inning + 1)).replace(phoneticCountMunge, ' and ').replace(phoneticZero, 'O');
+        if (voiceGame.gameComplete == true) {
+          if (voiceGame.homeScore > voiceGame.awayScore) {
+            phoneticUpdate = phoneticUpdate + ' Final score: ' + voiceGame.homeTeamName + ' ' + voiceGame.homeScore + ', ' + voiceGame.awayTeamName + ' ' + voiceGame.awayScore + '.' + (voiceGame.shame == true ? ' The ' + voiceGame.awayTeamNickname + ' were shamed!' : '')
+          } else {
+            phoneticUpdate = phoneticUpdate + ' Final score: ' + voiceGame.awayTeamName + ' ' + voiceGame.awayScore + ', ' + voiceGame.homeTeamName + ' ' + voiceGame.homeScore + '.' + (voiceGame.shame == true ? ' The ' + voiceGame.homeTeamNickname + ' were shamed!' : '')
+          }
+        }
         console.debug(phoneticUpdate);
         let utterance = new SpeechSynthesisUtterance(phoneticUpdate)
         if (preferredVoice) {
