@@ -128,10 +128,26 @@ function setupSource() {
       const voiceGame = schedule.find((g) => g.awayTeamNickname === trackedName || g.homeTeamNickname === trackedName);
       const { lastUpdate } = voiceGame;
       if (lastUpdate && latestUpdate !== lastUpdate) {
+        let halfInningHeader = ''
         const phoneticInning = /(?<=^(Top|Bottom) of )\d+/;
+        if (voiceGame.lastUpdate.match(phoneticInning)) {
+          const awayScoreString = voiceGame.awayTeamNickname + ' ' + voiceGame.awayScore;
+          const homeScoreString = voiceGame.homeTeamNickname + ' ' + voiceGame.homeScore;
+          if (voiceGame.inning == 0 && voiceGame.topOfInning == true) {
+            halfInningHeader = 'Pitching today are ' + voiceGame.awayPitcherName + ' for the ' + voiceGame.awayTeamNickname + ' and ' + voiceGame.homePitcherName + ' for the ' + voiceGame.homeTeamNickname + '. '
+          } else {
+            if (voiceGame.homeScore == 0 && voiceGame.awayScore == 0) {
+              halfInningHeader = 'No score at the '
+            } else if (voiceGame.homeScore > voiceGame.awayScore) {
+              halfInningHeader = homeScoreString + ', ' + awayScoreString + ' at the '
+            } else {
+              halfInningHeader = awayScoreString + ', ' + homeScoreString + ' at the '
+            }
+          }
+        }
         const phoneticCountMunge = /(?<=\d)-(?=\d$)/;
         const phoneticZero = /(?<!\d)0/g;
-        const phoneticUpdate = voiceGame.lastUpdate.replace(phoneticInning, 'the ' + ordinal(voiceGame.inning + 1)).replace(phoneticCountMunge, ' and ').replace(phoneticZero, 'O')
+        const phoneticUpdate = halfInningHeader + voiceGame.lastUpdate.replace(phoneticInning, 'the ' + ordinal(voiceGame.inning + 1)).replace(phoneticCountMunge, ' and ').replace(phoneticZero, 'O');
         console.debug(phoneticUpdate);
         let utterance = new SpeechSynthesisUtterance(phoneticUpdate)
         if (preferredVoice) {
